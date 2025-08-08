@@ -1,0 +1,10 @@
+python-docx
+pdfplumber
+spacy
+nltk
+pandas
+numpy
+scikit-learn
+streamlit
+python-dotenv
+tqdm
