@@ -17,8 +17,9 @@ sys.path.append(str(current_dir))
 
 from parser import ResumeParser
 from preprocess import TextPreprocessor
-from skills_extractor import SkillsExtractor
+from skills_extractor import AdvancedSkillsExtractor
 from scorer import ResumeScorer
+from resume_analyzer import ResumeAnalyzer
 from utils import setup_logging, save_results_to_json, load_job_descriptions
 import config.settings as settings
 
@@ -32,8 +33,9 @@ class ResumeScreener:
         self.logger = setup_logging()
         self.parser = ResumeParser()
         self.preprocessor = TextPreprocessor()
-        self.skills_extractor = SkillsExtractor()
+        self.skills_extractor = AdvancedSkillsExtractor()
         self.scorer = ResumeScorer()
+        self.resume_analyzer = ResumeAnalyzer()
         
         # Ensure directories exist
         settings.ensure_directories()
@@ -61,10 +63,16 @@ class ResumeScreener:
                 return None
             
             # Preprocess text
-            processed_text = self.preprocessor.preprocess_text(raw_text)
+            processed_data = self.preprocessor.preprocess_text(raw_text)
+            processed_text = processed_data.get('cleaned_text', raw_text)
             
             # Extract skills
             skills = self.skills_extractor.extract_skills(processed_text)
+            technical_skills = self.skills_extractor.extract_technical_skills(processed_text)
+            soft_skills = self.skills_extractor.extract_soft_skills(processed_text)
+            
+            # Comprehensive resume analysis
+            full_analysis = self.resume_analyzer.analyze_full_resume(raw_text)
             
             # Calculate basic metrics
             text_length = len(raw_text)
@@ -76,10 +84,24 @@ class ResumeScreener:
                 'filename': Path(resume_path).name,
                 'text_length': text_length,
                 'word_count': word_count,
-                'skills': skills,
+                'text': raw_text,  # Full text for scoring
+                'skills': {
+                    'technical_skills': list(technical_skills),
+                    'soft_skills': list(soft_skills),
+                    'all_skills': skills
+                },
                 'processing_time': processing_time,
-                'raw_text': raw_text[:1000],  # First 1000 chars for preview
-                'processed_text': processed_text[:1000]  # First 1000 chars for preview
+                'full_analysis': full_analysis,  # Complete resume analysis
+                'sections': full_analysis.get('sections', {}),
+                'dates': full_analysis.get('dates', []),
+                'experience': full_analysis.get('experience', []),
+                'education': full_analysis.get('education', []),
+                'contact_info': full_analysis.get('contact_info', {}),
+                'projects': full_analysis.get('projects', []),
+                'certifications': full_analysis.get('certifications', []),
+                'languages': full_analysis.get('languages', []),
+                'summary': full_analysis.get('summary', ''),
+                'metrics': full_analysis.get('metrics', {})
             }
             
             self.logger.info(f"Analysis completed in {processing_time:.2f}s")
@@ -87,6 +109,36 @@ class ResumeScreener:
             
         except Exception as e:
             self.logger.error(f"Error analyzing resume {resume_path}: {str(e)}")
+            self.logger.error(traceback.format_exc())
+            return None
+    
+    def analyze_single_resume(self, resume_path: str, job_path: str, output_file: str = None) -> Optional[Dict[str, Any]]:
+        """
+        Analyze a single resume against a job description (CLI interface)
+        
+        Args:
+            resume_path: Path to the resume file
+            job_path: Path to the job description file
+            output_file: Optional output file path
+            
+        Returns:
+            Dictionary containing analysis results
+        """
+        try:
+            # Read job description
+            with open(job_path, 'r', encoding='utf-8') as f:
+                job_description = f.read().strip()
+            
+            # Match resume to job
+            result = self.match_resume_to_job(resume_path, job_description)
+            
+            if result and output_file:
+                save_results_to_json(result, output_file)
+            
+            return result
+            
+        except Exception as e:
+            self.logger.error(f"Error in analyze_single_resume: {str(e)}")
             self.logger.error(traceback.format_exc())
             return None
     
@@ -110,10 +162,15 @@ class ResumeScreener:
             if not resume_analysis:
                 return None
             
-            # Score against job description
-            score_result = self.scorer.calculate_overall_score(
-                resume_analysis, job_description
-            )
+            # Create job requirements for ATS scoring
+            job_requirements = {
+                'experience_years': 7,  # Default for senior roles
+                'required_skills': ['swift', 'swiftui', 'uikit', 'ios', 'xctest', 'fastlane'],
+                'preferred_skills': ['firebase', 'jenkins', 'github actions', 'agile', 'accessibility']
+            }
+            
+            # Score against job description using ATS analysis
+            score_result = self.scorer.calculate_ats_score(resume_analysis, job_requirements)
             
             processing_time = time.time() - start_time
             
@@ -122,7 +179,26 @@ class ResumeScreener:
                 'overall_score': score_result.get('overall_score', 0),
                 'breakdown': score_result.get('breakdown', {}),
                 'skills_found': resume_analysis.get('skills', {}),
-                'processing_time': processing_time
+                'processing_time': processing_time,
+                # ATS Analysis Results
+                'ats_analysis': {
+                    'overall_score': score_result.get('overall_score', 0),
+                    'highlights': score_result.get('highlights', []),
+                    'gaps': score_result.get('gaps', []),
+                    'recommendations': score_result.get('recommendations', []),
+                    'detailed_matches': score_result.get('detailed_matches', [])
+                },
+                # Enhanced analysis data
+                'experience': [self._convert_experience_to_dict(exp) for exp in resume_analysis.get('experience', [])],
+                'education': [self._convert_education_to_dict(edu) for edu in resume_analysis.get('education', [])],
+                'dates': resume_analysis.get('dates', []),
+                'contact_info': resume_analysis.get('contact_info', {}),
+                'projects': resume_analysis.get('projects', []),
+                'certifications': resume_analysis.get('certifications', []),
+                'languages': resume_analysis.get('languages', []),
+                'summary': resume_analysis.get('summary', ''),
+                'metrics': resume_analysis.get('metrics', {}),
+                'sections': resume_analysis.get('sections', {})
             }
             
             self.logger.info(f"Match completed in {processing_time:.2f}s")
@@ -132,6 +208,18 @@ class ResumeScreener:
             self.logger.error(f"Error matching resume to job: {str(e)}")
             self.logger.error(traceback.format_exc())
             return None
+    
+    def _convert_experience_to_dict(self, experience):
+        """Convert Experience dataclass to dictionary"""
+        if hasattr(experience, '__dict__'):
+            return experience.__dict__
+        return experience
+    
+    def _convert_education_to_dict(self, education):
+        """Convert Education dataclass to dictionary"""
+        if hasattr(education, '__dict__'):
+            return education.__dict__
+        return education
     
     def run_batch_analysis(self, resumes_dir: str, jobs_dir: str, 
                           output_file: str = None) -> Dict[str, Any]:

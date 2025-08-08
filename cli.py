@@ -112,10 +112,82 @@ Examples:
         )
         
         if args.verbose:
-            print("\n📊 Analysis Results:")
-            print("=" * 50)
-            print(f"Overall Score: {result.get('overall_score', 0):.2%}")
-            print(f"Skills Found: {', '.join(result.get('skills', []))}")
+            print("\n🎯 ATS Resume Match & Score Report")
+            print("=" * 60)
+            
+            # ATS Score
+            ats_analysis = result.get('ats_analysis', {})
+            overall_score = ats_analysis.get('overall_score', result.get('overall_score', 0))
+            print(f"✅ ATS Match Score: {overall_score:.0f}/100")
+            
+            # Detailed Matches
+            detailed_matches = ats_analysis.get('detailed_matches', [])
+            if detailed_matches:
+                print("\n📌 Matching Breakdown")
+                print("Job Requirement\t\tMatched in Resume?\tDetails\t\tConfidence")
+                for match in detailed_matches:
+                    requirement = match.get('requirement', '')
+                    matched = match.get('matched', '')
+                    details = match.get('details', '')
+                    confidence = match.get('confidence', 0)
+                    explanation = match.get('explanation', '')
+                    
+                    print(f"{requirement:<25}\t{matched:<20}\t{details:<20}\t{confidence:.1%}")
+                    if explanation:
+                        print(f"   💡 {explanation}")
+                    print()
+            
+            # Highlights
+            highlights = ats_analysis.get('highlights', [])
+            if highlights:
+                print("\n⭐ Highlights in Resume")
+                for highlight in highlights:
+                    print(f"✅ {highlight}")
+            
+            # Gaps
+            gaps = ats_analysis.get('gaps', [])
+            if gaps:
+                print("\n📉 Areas to Improve for 100% Match")
+                print("Gap Area\t\t\tRecommendation")
+                for gap in gaps:
+                    print(f"{gap}")
+            
+            # Recommendations
+            recommendations = ats_analysis.get('recommendations', [])
+            if recommendations:
+                print("\n💡 Recommendations")
+                for i, rec in enumerate(recommendations, 1):
+                    print(f"{i}. {rec}")
+            
+            # Skills Summary
+            skills_found = result.get('skills_found', {})
+            if skills_found:
+                tech_skills = skills_found.get('technical_skills', [])
+                soft_skills = skills_found.get('soft_skills', [])
+                print(f"\n🔧 Technical Skills Found: {len(tech_skills)}")
+                print(f"🤝 Soft Skills Found: {len(soft_skills)}")
+            
+            # Experience Summary
+            experience = result.get('experience', [])
+            education = result.get('education', [])
+            dates = result.get('dates', [])
+            
+            print(f"\n📊 Resume Analysis Summary:")
+            print(f"   📅 Dates Found: {len(dates)}")
+            print(f"   💼 Experience Entries: {len(experience)}")
+            print(f"   🎓 Education Entries: {len(education)}")
+            
+            # Contact info
+            contact_info = result.get('contact_info', {})
+            if contact_info:
+                print(f"   📧 Contact: {contact_info.get('email', 'Not found')}")
+            
+            # Metrics
+            metrics = result.get('metrics', {})
+            if metrics:
+                print(f"   📝 Total Words: {metrics.get('total_words', 0)}")
+                print(f"   📏 Total Characters: {metrics.get('total_characters', 0)}")
+                print(f"   📋 Sections Found: {metrics.get('sections_count', 0)}")
         
         print(f"✅ Analysis completed. Results saved to: {args.output}")
         

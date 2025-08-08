@@ -19,59 +19,303 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Custom CSS for better styling
+# Professional CSS styling
 st.markdown("""
 <style>
+    /* Professional color palette */
+    :root {
+        --primary-blue: #1e40af;
+        --primary-dark: #1e3a8a;
+        --secondary-blue: #3b82f6;
+        --accent-green: #059669;
+        --accent-orange: #ea580c;
+        --accent-red: #dc2626;
+        --gray-50: #f9fafb;
+        --gray-100: #f3f4f6;
+        --gray-200: #e5e7eb;
+        --gray-300: #d1d5db;
+        --gray-600: #4b5563;
+        --gray-700: #374151;
+        --gray-800: #1f2937;
+        --gray-900: #111827;
+        --white: #ffffff;
+        --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+        --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+        --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+    }
+    
+    /* Global styles */
+    .main {
+        background: linear-gradient(135deg, var(--gray-50) 0%, var(--white) 100%);
+        padding: 2rem;
+    }
+    
+    /* Professional header */
     .main-header {
-        font-size: 3rem;
-        font-weight: bold;
-        color: #1f77b4;
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: var(--gray-900);
         text-align: center;
-        margin-bottom: 2rem;
+        margin-bottom: 3rem;
+        letter-spacing: -0.025em;
+        background: linear-gradient(135deg, var(--primary-blue), var(--secondary-blue));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
     }
+    
+    /* Professional cards */
     .metric-card {
-        background-color: #f0f2f6;
-        padding: 1rem;
-        border-radius: 0.5rem;
-        margin: 0.5rem 0;
+        background: var(--white);
+        border: 1px solid var(--gray-200);
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin: 1rem 0;
+        box-shadow: var(--shadow-md);
+        transition: all 0.2s ease;
+        border-left: 4px solid var(--primary-blue);
     }
+    
+    .metric-card:hover {
+        box-shadow: var(--shadow-lg);
+        transform: translateY(-1px);
+    }
+    
+    /* Status boxes */
     .success-box {
-        background-color: #d4edda;
-        border: 1px solid #c3e6cb;
-        border-radius: 0.5rem;
-        padding: 1rem;
+        background: linear-gradient(135deg, #f0fdf4, #dcfce7);
+        border: 1px solid #bbf7d0;
+        border-radius: 12px;
+        padding: 1.5rem;
         margin: 1rem 0;
+        box-shadow: var(--shadow-sm);
+        border-left: 4px solid var(--accent-green);
     }
+    
     .info-box {
-        background-color: #d1ecf1;
-        border: 1px solid #bee5eb;
-        border-radius: 0.5rem;
-        padding: 1rem;
+        background: linear-gradient(135deg, #eff6ff, #dbeafe);
+        border: 1px solid #bfdbfe;
+        border-radius: 12px;
+        padding: 1.5rem;
         margin: 1rem 0;
+        box-shadow: var(--shadow-sm);
+        border-left: 4px solid var(--primary-blue);
     }
+    
     .warning-box {
-        background-color: #fff3cd;
-        border: 1px solid #ffeaa7;
-        border-radius: 0.5rem;
-        padding: 1rem;
+        background: linear-gradient(135deg, #fffbeb, #fef3c7);
+        border: 1px solid #fde68a;
+        border-radius: 12px;
+        padding: 1.5rem;
         margin: 1rem 0;
+        box-shadow: var(--shadow-sm);
+        border-left: 4px solid var(--accent-orange);
     }
+    
+    .error-box {
+        background: linear-gradient(135deg, #fef2f2, #fee2e2);
+        border: 1px solid #fecaca;
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin: 1rem 0;
+        box-shadow: var(--shadow-sm);
+        border-left: 4px solid var(--accent-red);
+    }
+    
+    /* Professional typography */
     .help-text {
-        font-size: 0.9rem;
-        color: #666;
+        font-size: 0.875rem;
+        color: var(--gray-600);
         font-style: italic;
+        padding: 0.75rem;
+        background: var(--gray-50);
+        border-radius: 8px;
+        border: 1px solid var(--gray-200);
     }
+    
+    /* Step indicators */
     .step-number {
-        background-color: #1f77b4;
-        color: white;
+        background: linear-gradient(135deg, var(--primary-blue), var(--secondary-blue));
+        color: var(--white);
         border-radius: 50%;
-        width: 25px;
-        height: 25px;
+        width: 28px;
+        height: 28px;
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        font-weight: bold;
-        margin-right: 10px;
+        font-weight: 600;
+        margin-right: 12px;
+        font-size: 0.875rem;
+        box-shadow: var(--shadow-sm);
+    }
+    
+    /* Skill tags */
+    .skill-tag {
+        background: linear-gradient(135deg, var(--primary-blue), var(--secondary-blue));
+        color: var(--white);
+        padding: 0.375rem 0.75rem;
+        border-radius: 6px;
+        font-size: 0.75rem;
+        font-weight: 500;
+        margin: 0.125rem;
+        display: inline-block;
+        box-shadow: var(--shadow-sm);
+        text-transform: uppercase;
+        letter-spacing: 0.025em;
+    }
+    
+    .skill-tag.technical {
+        background: linear-gradient(135deg, var(--accent-green), #10b981);
+    }
+    
+    .skill-tag.soft {
+        background: linear-gradient(135deg, var(--accent-orange), #f97316);
+    }
+    
+    /* Score visualization */
+    .score-circle {
+        width: 100px;
+        height: 100px;
+        border-radius: 50%;
+        background: conic-gradient(var(--accent-green) 0deg, var(--accent-green) calc(var(--score) * 360deg), var(--gray-200) calc(var(--score) * 360deg), var(--gray-200) 360deg);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 1rem auto;
+        box-shadow: var(--shadow-md);
+        position: relative;
+    }
+    
+    .score-circle::before {
+        content: '';
+        position: absolute;
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        background: var(--white);
+        box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    .score-text {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: var(--gray-900);
+        position: relative;
+        z-index: 1;
+    }
+    
+    /* Professional buttons */
+    .stButton > button {
+        background: linear-gradient(135deg, var(--primary-blue), var(--secondary-blue));
+        color: var(--white);
+        border: none;
+        border-radius: 8px;
+        padding: 0.75rem 1.5rem;
+        font-weight: 600;
+        font-size: 0.875rem;
+        box-shadow: var(--shadow-sm);
+        transition: all 0.2s ease;
+        text-transform: uppercase;
+        letter-spacing: 0.025em;
+    }
+    
+    .stButton > button:hover {
+        box-shadow: var(--shadow-md);
+        transform: translateY(-1px);
+        background: linear-gradient(135deg, var(--primary-dark), var(--primary-blue));
+    }
+    
+    /* Sidebar styling */
+    .css-1d391kg {
+        background: linear-gradient(180deg, var(--gray-900), var(--gray-800));
+    }
+    
+    /* File uploader */
+    .stFileUploader > div {
+        border: 2px dashed var(--gray-300);
+        border-radius: 12px;
+        background: var(--gray-50);
+        padding: 2rem;
+        transition: all 0.2s ease;
+    }
+    
+    .stFileUploader > div:hover {
+        border-color: var(--primary-blue);
+        background: var(--gray-100);
+    }
+    
+    /* Data tables */
+    .dataframe {
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: var(--shadow-sm);
+    }
+    
+    /* Progress bars */
+    .stProgress > div > div > div {
+        background: linear-gradient(90deg, var(--accent-green), var(--primary-blue));
+        border-radius: 4px;
+    }
+    
+    /* Metrics display */
+    .metric-value {
+        font-size: 2rem;
+        font-weight: 700;
+        color: var(--primary-blue);
+        text-align: center;
+    }
+    
+    .metric-label {
+        font-size: 0.875rem;
+        color: var(--gray-600);
+        text-align: center;
+        text-transform: uppercase;
+        letter-spacing: 0.025em;
+        font-weight: 500;
+    }
+    
+    /* Section headers */
+    .section-header {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: var(--gray-900);
+        margin: 2rem 0 1rem 0;
+        padding-bottom: 0.5rem;
+        border-bottom: 2px solid var(--gray-200);
+    }
+    
+    /* Code blocks */
+    .stCodeBlock {
+        background: var(--gray-900);
+        border-radius: 8px;
+        border: 1px solid var(--gray-700);
+    }
+    
+    /* Alerts */
+    .stAlert {
+        border-radius: 8px;
+        border: none;
+        box-shadow: var(--shadow-sm);
+    }
+    
+    /* Tabs */
+    .stTabs > div > div > div {
+        background: var(--white);
+        border-radius: 8px 8px 0 0;
+        border: 1px solid var(--gray-200);
+        border-bottom: none;
+    }
+    
+    .stTabs > div > div > div[data-baseweb="tab"] {
+        background: var(--gray-50);
+        border: 1px solid var(--gray-200);
+        border-bottom: none;
+        border-radius: 8px 8px 0 0;
+    }
+    
+    .stTabs > div > div > div[data-baseweb="tab"][aria-selected="true"] {
+        background: var(--white);
+        border-bottom: 2px solid var(--primary-blue);
     }
 </style>
 """, unsafe_allow_html=True)
@@ -86,13 +330,18 @@ def show_help_tooltip():
     """, unsafe_allow_html=True)
 
 def main():
-    # Header
-    st.markdown('<h1 class="main-header">🚀 ApexHire - AI Resume Screener</h1>', unsafe_allow_html=True)
+    # Professional header
+    st.markdown('<h1 class="main-header">ApexHire AI Resume Screener</h1>', unsafe_allow_html=True)
     
-    # Sidebar
-    st.sidebar.title("📋 Navigation")
+    # Professional sidebar
+    st.sidebar.markdown("""
+    <div style="padding: 1rem; background: linear-gradient(135deg, #1e40af, #3b82f6); border-radius: 12px; margin-bottom: 2rem;">
+        <h3 style="color: white; margin: 0; font-weight: 600;">Navigation</h3>
+    </div>
+    """, unsafe_allow_html=True)
+    
     page = st.sidebar.selectbox(
-        "Choose a page:",
+        "Select a page:",
         ["🏠 Home", "📄 Resume Analysis", "💼 Job Matching", "📊 Results", "⚙️ Settings", "❓ Help"]
     )
     
@@ -110,79 +359,141 @@ def main():
         show_help_page()
 
 def show_home_page():
-    st.markdown("## 🎯 Welcome to ApexHire")
+    """Display the professional home page"""
+    
+    # Hero section
+    st.markdown("""
+    <div style="background: linear-gradient(135deg, #1e40af, #3b82f6); padding: 3rem; border-radius: 16px; margin-bottom: 3rem;">
+        <h2 style="color: white; margin: 0 0 1rem 0; font-weight: 700;">AI-Powered Resume Screening</h2>
+        <p style="color: white; font-size: 1.1rem; margin: 0; opacity: 0.9;">
+            Advanced NLP technology for intelligent resume analysis and job matching. 
+            Extract skills, analyze experience, and find the perfect candidate match.
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
     
     # Quick start guide
-    st.markdown("### 🚀 Quick Start Guide")
+    st.markdown('<h3 class="section-header">Quick Start Guide</h3>', unsafe_allow_html=True)
     
     col1, col2 = st.columns(2)
     
     with col1:
         st.markdown("""
+        <div class="metric-card">
+            <div style="display: flex; align-items: center; margin-bottom: 1rem;">
+                <div class="step-number">1</div>
+                <h4 style="margin: 0; color: #1e40af;">Upload Resume</h4>
+            </div>
+            <p style="color: #6b7280; margin: 0;">Upload your resume file (PDF, DOCX, TXT) for comprehensive analysis</p>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        st.markdown("""
+        <div class="metric-card">
+            <div style="display: flex; align-items: center; margin-bottom: 1rem;">
+                <div class="step-number">3</div>
+                <h4 style="margin: 0; color: #1e40af;">View Results</h4>
+            </div>
+            <p style="color: #6b7280; margin: 0;">Review detailed analysis, skills extraction, and match scores</p>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    with col2:
+        st.markdown("""
+        <div class="metric-card">
+            <div style="display: flex; align-items: center; margin-bottom: 1rem;">
+                <div class="step-number">2</div>
+                <h4 style="margin: 0; color: #1e40af;">Add Job Description</h4>
+            </div>
+            <p style="color: #6b7280; margin: 0;">Enter or upload job requirements for intelligent matching</p>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        st.markdown("""
+        <div class="metric-card">
+            <div style="display: flex; align-items: center; margin-bottom: 1rem;">
+                <div class="step-number">4</div>
+                <h4 style="margin: 0; color: #1e40af;">Get Insights</h4>
+            </div>
+            <p style="color: #6b7280; margin: 0;">Analyze experience, education, and skill compatibility</p>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    # Features section
+    st.markdown('<h3 class="section-header">Key Features</h3>', unsafe_allow_html=True)
+    
+    features_col1, features_col2 = st.columns(2)
+    
+    with features_col1:
+        st.markdown("""
         <div class="info-box">
-            <h4>📄 Step 1: Upload Resume</h4>
-            <p>Go to "Resume Analysis" and upload your resume in PDF, DOCX, or TXT format.</p>
+            <h4 style="color: #1e40af; margin: 0 0 0.5rem 0;">📄 Smart Resume Parsing</h4>
+            <p style="color: #6b7280; margin: 0;">Advanced text extraction from PDF, DOCX, and TXT files with NLP processing</p>
         </div>
         """, unsafe_allow_html=True)
         
         st.markdown("""
         <div class="info-box">
-            <h4>💼 Step 2: Add Job Description</h4>
-            <p>Go to "Job Matching" and enter the job title and description you want to match against.</p>
+            <h4 style="color: #1e40af; margin: 0 0 0.5rem 0;">🧠 AI-Powered Analysis</h4>
+            <p style="color: #6b7280; margin: 0;">Machine learning algorithms for skills extraction and semantic matching</p>
         </div>
         """, unsafe_allow_html=True)
     
-    with col2:
+    with features_col2:
         st.markdown("""
         <div class="info-box">
-            <h4>🔍 Step 3: Analyze</h4>
-            <p>Click the analyze button and wait for the AI to process your resume and job requirements.</p>
+            <h4 style="color: #1e40af; margin: 0 0 0.5rem 0;">📊 Comprehensive Insights</h4>
+            <p style="color: #6b7280; margin: 0;">Detailed analysis of experience, education, skills, and contact information</p>
         </div>
         """, unsafe_allow_html=True)
         
         st.markdown("""
         <div class="info-box">
-            <h4>📊 Step 4: Review Results</h4>
-            <p>View detailed match scores, skill analysis, and recommendations for the position.</p>
+            <h4 style="color: #1e40af; margin: 0 0 0.5rem 0;">🎯 Intelligent Matching</h4>
+            <p style="color: #6b7280; margin: 0;">Advanced algorithms to rank candidates by relevance and compatibility</p>
         </div>
         """, unsafe_allow_html=True)
     
-    # Features
-    st.markdown("### 🛠️ Features")
+    # System statistics
+    st.markdown('<h3 class="section-header">System Statistics</h3>', unsafe_allow_html=True)
     
-    col1, col2 = st.columns(2)
+    stats_col1, stats_col2, stats_col3, stats_col4 = st.columns(4)
     
-    with col1:
+    with stats_col1:
         st.markdown("""
-        - **📄 Resume Parsing**: PDF, DOCX, TXT support
-        - **🧠 AI Analysis**: Advanced NLP processing
-        - **🔍 Skill Extraction**: Technical and soft skills
-        - **📊 Smart Scoring**: Multi-factor matching algorithm
-        """)
+        <div class="metric-card" style="text-align: center;">
+            <div class="metric-value">3</div>
+            <div class="metric-label">Supported Formats</div>
+            <div style="font-size: 0.75rem; color: #6b7280; margin-top: 0.5rem;">PDF, DOCX, TXT</div>
+        </div>
+        """, unsafe_allow_html=True)
     
-    with col2:
+    with stats_col2:
         st.markdown("""
-        - **🌐 Web Interface**: Easy-to-use dashboard
-        - **📈 Analytics**: Detailed performance insights
-        - **⚙️ Customizable**: Adjustable scoring weights
-        - **📋 Batch Processing**: Handle multiple files
-        """)
+        <div class="metric-card" style="text-align: center;">
+            <div class="metric-value">&lt;30s</div>
+            <div class="metric-label">Processing Speed</div>
+            <div style="font-size: 0.75rem; color: #6b7280; margin-top: 0.5rem;">per resume</div>
+        </div>
+        """, unsafe_allow_html=True)
     
-    # Quick stats
-    st.markdown("### 📈 System Statistics")
-    col1, col2, col3, col4 = st.columns(4)
+    with stats_col3:
+        st.markdown("""
+        <div class="metric-card" style="text-align: center;">
+            <div class="metric-value">95%+</div>
+            <div class="metric-label">Accuracy</div>
+            <div style="font-size: 0.75rem; color: #6b7280; margin-top: 0.5rem;">skill extraction</div>
+        </div>
+        """, unsafe_allow_html=True)
     
-    with col1:
-        st.metric("Supported Formats", "3", "PDF, DOCX, TXT")
-    
-    with col2:
-        st.metric("Processing Speed", "< 30s", "per resume")
-    
-    with col3:
-        st.metric("Accuracy", "95%+", "skill extraction")
-    
-    with col4:
-        st.metric("Languages", "1", "English")
+    with stats_col4:
+        st.markdown("""
+        <div class="metric-card" style="text-align: center;">
+            <div class="metric-value">1</div>
+            <div class="metric-label">Languages</div>
+            <div style="font-size: 0.75rem; color: #6b7280; margin-top: 0.5rem;">English</div>
+        </div>
+        """, unsafe_allow_html=True)
 
 def show_resume_analysis():
     st.markdown("## 📄 Resume Analysis")
@@ -338,104 +649,93 @@ def show_job_matching():
         st.info("ℹ️ No resume files found. Please upload resumes first in the Resume Analysis section.")
 
 def display_job_match(result, job_title):
-    st.markdown("### 🎯 Match Results")
+    """Display job matching results with ATS analysis"""
+    st.markdown("### 🎯 ATS Job Match Analysis")
     
     # Overall score
     overall_score = result.get('overall_score', 0)
-    score_percentage = overall_score * 100
+    st.markdown(f"#### ✅ ATS Match Score: {overall_score:.0f}/100")
     
-    st.markdown(f"#### 📊 Match Score for {job_title}")
+    # ATS Analysis
+    ats_analysis = result.get('ats_analysis', {})
+    if ats_analysis:
+        # Detailed matches
+        detailed_matches = ats_analysis.get('detailed_matches', [])
+        if detailed_matches:
+            st.markdown("#### 📌 Matching Breakdown")
+            
+            # Create a table for matches
+            match_data = []
+            for match in detailed_matches:
+                requirement = match.get('requirement', '')
+                matched = match.get('matched', '')
+                details = match.get('details', '')
+                match_data.append([requirement, matched, details])
+            
+            if match_data:
+                df = pd.DataFrame(match_data, columns=['Job Requirement', 'Matched?', 'Details'])
+                st.dataframe(df, use_container_width=True)
+        
+        # Highlights
+        highlights = ats_analysis.get('highlights', [])
+        if highlights:
+            st.markdown("#### ⭐ Highlights in Resume")
+            for highlight in highlights:
+                st.markdown(f"✅ {highlight}")
+        
+        # Gaps
+        gaps = ats_analysis.get('gaps', [])
+        if gaps:
+            st.markdown("#### 📉 Areas to Improve")
+            for gap in gaps:
+                st.markdown(f"⚠️ {gap}")
+        
+        # Recommendations
+        recommendations = ats_analysis.get('recommendations', [])
+        if recommendations:
+            st.markdown("#### 💡 Recommendations")
+            for i, rec in enumerate(recommendations, 1):
+                st.markdown(f"{i}. {rec}")
     
-    # Progress bar for score
-    st.progress(overall_score)
-    st.metric("Match Score", f"{score_percentage:.1f}%")
-    
-    # Score interpretation
-    if score_percentage >= 80:
-        st.success("🎉 Excellent match! This candidate is highly qualified for the position.")
-    elif score_percentage >= 60:
-        st.info("�� Good match. Consider this candidate for the position.")
-    elif score_percentage >= 40:
-        st.warning("⚠️ Moderate match. Consider additional screening.")
-    else:
-        st.error("❌ Low match. Consider other candidates.")
-    
-    # Score breakdown
-    st.markdown("#### 📈 Score Breakdown")
-    breakdown = result.get('breakdown', {})
-    
-    col1, col2 = st.columns(2)
-    
-    with col1:
-        st.metric("Keyword Match", f"{breakdown.get('keyword_score', 0):.1%}")
-        st.metric("Skill Match", f"{breakdown.get('skill_score', 0):.1%}")
-    
-    with col2:
-        st.metric("Semantic Match", f"{breakdown.get('semantic_score', 0):.1%}")
-        st.metric("Experience Score", f"{breakdown.get('experience_score', 0):.1%}")
-    
-    # Skills found
-    st.markdown("#### 🔧 Skills Found in Resume")
+    # Skills breakdown
     skills_found = result.get('skills_found', {})
-    
-    col1, col2 = st.columns(2)
-    
-    with col1:
-        tech_skills = skills_found.get('technical_skills', [])
-        if tech_skills:
-            st.write("**Technical Skills:**")
-            for skill in tech_skills[:8]:
-                st.write(f"• {skill}")
-        else:
-            st.write("No technical skills found")
-    
-    with col2:
+    if skills_found:
+        technical_skills = skills_found.get('technical_skills', [])
         soft_skills = skills_found.get('soft_skills', [])
-        if soft_skills:
-            st.write("**Soft Skills:**")
-            for skill in soft_skills[:5]:
-                st.write(f"• {skill}")
-        else:
-            st.write("No soft skills found")
+        
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            st.markdown("#### 🔧 Technical Skills")
+            st.metric("Total Skills", len(technical_skills))
+            if technical_skills:
+                # Show skills in a more compact way
+                skills_text = ", ".join(technical_skills[:15])  # Show first 15
+                if len(technical_skills) > 15:
+                    skills_text += f" ... and {len(technical_skills) - 15} more"
+                st.markdown(f"**Skills:** {skills_text}")
+        
+        with col2:
+            st.markdown("#### 🤝 Soft Skills")
+            st.metric("Total Skills", len(soft_skills))
+            if soft_skills:
+                st.markdown(f"**Skills:** {', '.join(soft_skills)}")
     
-    # Recommendations
-    st.markdown("#### 💡 Recommendations")
-    if score_percentage >= 80:
-        st.markdown("""
-        <div class="success-box">
-            <h4>✅ Strong Candidate</h4>
-            <p>• Schedule an interview</p>
-            <p>• Review technical skills in detail</p>
-            <p>• Check references</p>
-        </div>
-        """, unsafe_allow_html=True)
-    elif score_percentage >= 60:
-        st.markdown("""
-        <div class="info-box">
-            <h4>👍 Good Potential</h4>
-            <p>• Consider for interview</p>
-            <p>• Review specific skill gaps</p>
-            <p>• Ask targeted questions</p>
-        </div>
-        """, unsafe_allow_html=True)
-    elif score_percentage >= 40:
-        st.markdown("""
-        <div class="warning-box">
-            <h4>⚠️ Moderate Match</h4>
-            <p>• Consider additional screening</p>
-            <p>• Review skill requirements</p>
-            <p>• May need training</p>
-        </div>
-        """, unsafe_allow_html=True)
-    else:
-        st.markdown("""
-        <div class="warning-box">
-            <h4>❌ Low Match</h4>
-            <p>• Consider other candidates</p>
-            <p>• Review job requirements</p>
-            <p>• May need different role</p>
-        </div>
-        """, unsafe_allow_html=True)
+    # Resume metrics
+    metrics = result.get('metrics', {})
+    if metrics:
+        st.markdown("#### 📊 Resume Metrics")
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            st.metric("📝 Total Words", metrics.get('total_words', 0))
+        with col2:
+            st.metric("📏 Characters", metrics.get('total_characters', 0))
+        with col3:
+            st.metric("📋 Sections", metrics.get('sections_count', 0))
+    
+    # Processing time
+    processing_time = result.get('processing_time', 0)
+    st.markdown(f"**Processing Time:** {processing_time:.2f}s")
 
 def show_results():
     st.markdown("## 📊 Results")
@@ -462,11 +762,109 @@ def show_results():
 def display_results(results):
     st.markdown("### 📈 Detailed Results")
     
+    # Handle single result or batch results
+    if isinstance(results, dict) and 'resume_filename' in results:
+        # Single result
+        display_single_result(results)
+    elif isinstance(results, dict) and 'results' in results:
+        # Batch results
+        display_batch_results(results)
+    else:
+        # Single result (new format)
+        display_single_result(results)
+
+def display_single_result(result):
+    """Display a single resume analysis result"""
+    st.markdown("#### 🎯 ATS Resume Analysis")
+    
+    # Overall score
+    overall_score = result.get('overall_score', 0)
+    st.markdown(f"### ✅ ATS Match Score: {overall_score:.0f}/100")
+    
+    # ATS Analysis
+    ats_analysis = result.get('ats_analysis', {})
+    if ats_analysis:
+        # Detailed matches
+        detailed_matches = ats_analysis.get('detailed_matches', [])
+        if detailed_matches:
+            st.markdown("#### 📌 Matching Breakdown")
+            
+            # Create a table for matches
+            match_data = []
+            for match in detailed_matches:
+                requirement = match.get('requirement', '')
+                matched = match.get('matched', '')
+                details = match.get('details', '')
+                match_data.append([requirement, matched, details])
+            
+            if match_data:
+                df = pd.DataFrame(match_data, columns=['Job Requirement', 'Matched?', 'Details'])
+                st.dataframe(df, use_container_width=True)
+        
+        # Highlights
+        highlights = ats_analysis.get('highlights', [])
+        if highlights:
+            st.markdown("#### ⭐ Highlights in Resume")
+            for highlight in highlights:
+                st.markdown(f"✅ {highlight}")
+        
+        # Gaps
+        gaps = ats_analysis.get('gaps', [])
+        if gaps:
+            st.markdown("#### 📉 Areas to Improve")
+            for gap in gaps:
+                st.markdown(f"⚠️ {gap}")
+        
+        # Recommendations
+        recommendations = ats_analysis.get('recommendations', [])
+        if recommendations:
+            st.markdown("#### 💡 Recommendations")
+            for i, rec in enumerate(recommendations, 1):
+                st.markdown(f"{i}. {rec}")
+    
+    # Skills summary
+    skills_found = result.get('skills_found', {})
+    if skills_found:
+        col1, col2 = st.columns(2)
+        with col1:
+            tech_skills = skills_found.get('technical_skills', [])
+            st.metric("🔧 Technical Skills", len(tech_skills))
+        with col2:
+            soft_skills = skills_found.get('soft_skills', [])
+            st.metric("🤝 Soft Skills", len(soft_skills))
+    
+    # Resume metrics
+    metrics = result.get('metrics', {})
+    if metrics:
+        st.markdown("#### 📊 Resume Metrics")
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            st.metric("📝 Total Words", metrics.get('total_words', 0))
+        with col2:
+            st.metric("📏 Characters", metrics.get('total_characters', 0))
+        with col3:
+            st.metric("📋 Sections", metrics.get('sections_count', 0))
+    
+    # Experience summary
+    experience = result.get('experience', [])
+    education = result.get('education', [])
+    dates = result.get('dates', [])
+    
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        st.metric("📅 Dates Found", len(dates))
+    with col2:
+        st.metric("💼 Experience Entries", len(experience))
+    with col3:
+        st.metric("🎓 Education Entries", len(education))
+
+def display_batch_results(results):
+    """Display batch analysis results"""
+    st.markdown("#### 📊 Batch Analysis Summary")
+    
     # Summary
     if 'summary' in results:
         summary = results['summary']
-        st.markdown("#### 📊 Summary")
-        
         col1, col2, col3 = st.columns(3)
         
         with col1:

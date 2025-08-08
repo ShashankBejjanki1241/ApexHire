@@ -7,6 +7,7 @@ import os
 import json
 import logging
 from datetime import datetime
+from typing import Dict, Any
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
@@ -25,6 +26,8 @@ def setup_logging(log_file: str = 'logs/resume_screener.log'):
             logging.StreamHandler()
         ]
     )
+    
+    return logging.getLogger(__name__)
 
 
 def create_directory_structure():
@@ -63,6 +66,36 @@ def print_dependency_status():
     try:
         import numpy
         dependencies['numpy'] = True
+    except ImportError:
+        pass
+    
+    try:
+        import spacy
+        dependencies['spacy'] = True
+    except ImportError:
+        pass
+    
+    try:
+        import pdfplumber
+        dependencies['pdfplumber'] = True
+    except ImportError:
+        pass
+    
+    try:
+        import sklearn
+        dependencies['sklearn'] = True
+    except ImportError:
+        pass
+    
+    try:
+        import sentence_transformers
+        dependencies['sentence_transformers'] = True
+    except ImportError:
+        pass
+    
+    try:
+        import docx
+        dependencies['python-docx'] = True
     except ImportError:
         pass
     
@@ -159,6 +192,50 @@ def print_summary_report(report):
     
     print(f"\n⏰ Generated: {report.get('timestamp', 'Unknown')}")
     print("="*50)
+
+
+def save_results_to_json(results: Dict[str, Any], output_file: str = 'output/results.json'):
+    """Save analysis results to JSON file"""
+    try:
+        os.makedirs(os.path.dirname(output_file), exist_ok=True)
+        with open(output_file, 'w', encoding='utf-8') as f:
+            json.dump(results, f, indent=2, ensure_ascii=False)
+        
+        logger.info(f"Results saved to {output_file}")
+        return True
+        
+    except Exception as e:
+        logger.error(f"Error saving results: {e}")
+        return False
+
+
+def load_job_descriptions(jobs_dir: str = 'data/job_descriptions') -> Dict[str, str]:
+    """Load job descriptions from directory"""
+    job_descriptions = {}
+    
+    try:
+        if not os.path.exists(jobs_dir):
+            logger.warning(f"Job descriptions directory not found: {jobs_dir}")
+            return job_descriptions
+        
+        for filename in os.listdir(jobs_dir):
+            if filename.endswith('.txt'):
+                file_path = os.path.join(jobs_dir, filename)
+                try:
+                    with open(file_path, 'r', encoding='utf-8') as f:
+                        content = f.read().strip()
+                        job_name = filename.replace('.txt', '')
+                        job_descriptions[job_name] = content
+                        logger.info(f"Loaded job description: {filename}")
+                except Exception as e:
+                    logger.error(f"Error loading {filename}: {e}")
+        
+        logger.info(f"Loaded {len(job_descriptions)} job descriptions")
+        return job_descriptions
+        
+    except Exception as e:
+        logger.error(f"Error loading job descriptions: {e}")
+        return job_descriptions
 
 
 if __name__ == "__main__":
