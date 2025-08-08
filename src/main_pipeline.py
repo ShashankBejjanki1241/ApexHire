@@ -1,168 +1,314 @@
 """
-Main Pipeline Module
-Orchestrates the complete AI Resume Screener workflow
+Enhanced Main Pipeline for ApexHire AI Resume Screener
 """
 
 import os
+import sys
+import json
 import logging
-from typing import List, Dict, Optional
+import time
+from pathlib import Path
+from typing import Dict, List, Optional, Any
+import traceback
+
+# Add current directory to path
+current_dir = Path(__file__).parent
+sys.path.append(str(current_dir))
+
 from parser import ResumeParser
 from preprocess import TextPreprocessor
 from skills_extractor import SkillsExtractor
 from scorer import ResumeScorer
-from utils import (
-    setup_logging, create_directory_structure, save_results_to_json,
-    create_summary_report, save_summary_report, print_summary_report,
-    print_dependency_status
-)
+from utils import setup_logging, save_results_to_json, load_job_descriptions
+import config.settings as settings
 
-# Set up logging
-setup_logging()
-logger = logging.getLogger(__name__)
-
-
-class ResumeScreenerPipeline:
-    """Main pipeline for AI Resume Screener"""
+class ResumeScreener:
+    """
+    Enhanced AI Resume Screener with comprehensive analysis capabilities
+    """
     
-    def __init__(self, use_semantic_similarity: bool = True):
-        """Initialize the pipeline"""
+    def __init__(self):
+        """Initialize the resume screener with all components"""
+        self.logger = setup_logging()
         self.parser = ResumeParser()
         self.preprocessor = TextPreprocessor()
         self.skills_extractor = SkillsExtractor()
-        self.scorer = ResumeScorer(use_semantic_similarity=use_semantic_similarity)
+        self.scorer = ResumeScorer()
         
-        # Create necessary directories
-        create_directory_structure()
+        # Ensure directories exist
+        settings.ensure_directories()
         
-        logger.info("Resume Screener Pipeline initialized")
+        self.logger.info("ResumeScreener initialized successfully")
     
-    def process_multiple_resumes(self, resume_directory: str) -> List[Dict]:
-        """Process multiple resumes from a directory"""
-        logger.info(f"Processing resumes from directory: {resume_directory}")
+    def analyze_resume(self, resume_path: str) -> Optional[Dict[str, Any]]:
+        """
+        Analyze a single resume and return detailed results
         
-        # Parse all resumes
-        parsed_resumes = self.parser.parse_multiple_resumes(resume_directory)
-        
-        if not parsed_resumes:
-            logger.warning(f"No resumes found in directory: {resume_directory}")
-            return []
-        
-        processed_resumes = []
-        
-        for parsed_resume in parsed_resumes:
+        Args:
+            resume_path: Path to the resume file
+            
+        Returns:
+            Dictionary containing analysis results
+        """
+        try:
+            self.logger.info(f"Starting analysis of: {resume_path}")
+            start_time = time.time()
+            
+            # Parse resume
+            raw_text = self.parser.parse_resume(resume_path)
+            if not raw_text:
+                self.logger.error(f"Failed to parse resume: {resume_path}")
+                return None
+            
             # Preprocess text
-            preprocessed = self.preprocessor.preprocess_text(parsed_resume['text'])
+            processed_text = self.preprocessor.preprocess_text(raw_text)
             
-            # Extract skills and information
-            skills_info = self.skills_extractor.extract_all_skills_and_info(parsed_resume['text'])
+            # Extract skills
+            skills = self.skills_extractor.extract_skills(processed_text)
             
-            # Combine all data
-            processed_resume = {
-                'filename': parsed_resume['filename'],
-                'file_path': parsed_resume['file_path'],
-                'text': parsed_resume['text'],
-                'preprocessed': preprocessed,
-                'skills': skills_info
+            # Calculate basic metrics
+            text_length = len(raw_text)
+            word_count = len(raw_text.split())
+            
+            processing_time = time.time() - start_time
+            
+            results = {
+                'filename': Path(resume_path).name,
+                'text_length': text_length,
+                'word_count': word_count,
+                'skills': skills,
+                'processing_time': processing_time,
+                'raw_text': raw_text[:1000],  # First 1000 chars for preview
+                'processed_text': processed_text[:1000]  # First 1000 chars for preview
             }
             
-            processed_resumes.append(processed_resume)
-        
-        logger.info(f"Successfully processed {len(processed_resumes)} resumes")
-        return processed_resumes
+            self.logger.info(f"Analysis completed in {processing_time:.2f}s")
+            return results
+            
+        except Exception as e:
+            self.logger.error(f"Error analyzing resume {resume_path}: {str(e)}")
+            self.logger.error(traceback.format_exc())
+            return None
     
-    def screen_resumes(self, resume_directory: str, job_description: str, 
-                      output_file: str = 'output/results.csv') -> List[Dict]:
-        """Complete resume screening workflow"""
-        logger.info("Starting resume screening workflow")
+    def match_resume_to_job(self, resume_path: str, job_description: str) -> Optional[Dict[str, Any]]:
+        """
+        Match a resume against a specific job description
         
-        # Step 1: Process all resumes
-        processed_resumes = self.process_multiple_resumes(resume_directory)
+        Args:
+            resume_path: Path to the resume file
+            job_description: Job description text
+            
+        Returns:
+            Dictionary containing match results
+        """
+        try:
+            self.logger.info(f"Matching resume {resume_path} to job description")
+            start_time = time.time()
+            
+            # Analyze resume
+            resume_analysis = self.analyze_resume(resume_path)
+            if not resume_analysis:
+                return None
+            
+            # Score against job description
+            score_result = self.scorer.calculate_overall_score(
+                resume_analysis, job_description
+            )
+            
+            processing_time = time.time() - start_time
+            
+            results = {
+                'resume_filename': Path(resume_path).name,
+                'overall_score': score_result.get('overall_score', 0),
+                'breakdown': score_result.get('breakdown', {}),
+                'skills_found': resume_analysis.get('skills', {}),
+                'processing_time': processing_time
+            }
+            
+            self.logger.info(f"Match completed in {processing_time:.2f}s")
+            return results
+            
+        except Exception as e:
+            self.logger.error(f"Error matching resume to job: {str(e)}")
+            self.logger.error(traceback.format_exc())
+            return None
+    
+    def run_batch_analysis(self, resumes_dir: str, jobs_dir: str, 
+                          output_file: str = None) -> Dict[str, Any]:
+        """
+        Run batch analysis on multiple resumes and job descriptions
         
-        if not processed_resumes:
-            logger.error("No resumes processed. Cannot continue screening.")
-            return []
+        Args:
+            resumes_dir: Directory containing resume files
+            jobs_dir: Directory containing job description files
+            output_file: Output file path (optional)
+            
+        Returns:
+            Dictionary containing batch analysis results
+        """
+        try:
+            self.logger.info(f"Starting batch analysis: {resumes_dir} vs {jobs_dir}")
+            start_time = time.time()
+            
+            # Get all resume files
+            resume_files = list(Path(resumes_dir).glob("*"))
+            resume_files = [f for f in resume_files if f.is_file() and 
+                          f.suffix.lower() in settings.SUPPORTED_FORMATS]
+            
+            # Get all job description files
+            job_files = list(Path(jobs_dir).glob("*"))
+            job_files = [f for f in job_files if f.is_file() and 
+                        f.suffix.lower() in ['.txt', '.json', '.md']]
+            
+            if not resume_files:
+                self.logger.error("No resume files found")
+                return {'error': 'No resume files found'}
+            
+            if not job_files:
+                self.logger.error("No job description files found")
+                return {'error': 'No job description files found'}
+            
+            # Load job descriptions
+            job_descriptions = {}
+            for job_file in job_files:
+                try:
+                    with open(job_file, 'r', encoding='utf-8') as f:
+                        content = f.read()
+                    job_descriptions[job_file.name] = content
+                except Exception as e:
+                    self.logger.warning(f"Failed to load job file {job_file}: {str(e)}")
+            
+            # Process each resume against each job
+            all_results = []
+            total_matches = 0
+            
+            for resume_file in resume_files:
+                resume_analysis = self.analyze_resume(str(resume_file))
+                if not resume_analysis:
+                    continue
+                
+                resume_results = {
+                    'resume_filename': resume_file.name,
+                    'resume_analysis': resume_analysis,
+                    'job_matches': []
+                }
+                
+                for job_name, job_content in job_descriptions.items():
+                    match_result = self.match_resume_to_job(
+                        str(resume_file), job_content
+                    )
+                    if match_result:
+                        match_result['job_name'] = job_name
+                        resume_results['job_matches'].append(match_result)
+                        total_matches += 1
+                
+                all_results.append(resume_results)
+            
+            # Calculate summary statistics
+            processing_time = time.time() - start_time
+            
+            summary = {
+                'total_resumes': len(resume_files),
+                'total_jobs': len(job_descriptions),
+                'total_matches': total_matches,
+                'processing_time': processing_time,
+                'average_score': 0.0  # Will be calculated below
+            }
+            
+            # Calculate average score
+            all_scores = []
+            for result in all_results:
+                for match in result['job_matches']:
+                    all_scores.append(match.get('overall_score', 0))
+            
+            if all_scores:
+                summary['average_score'] = sum(all_scores) / len(all_scores)
+            
+            # Prepare final results
+            final_results = {
+                'summary': summary,
+                'results': all_results,
+                'timestamp': time.strftime('%Y-%m-%d %H:%M:%S')
+            }
+            
+            # Save results if output file specified
+            if output_file:
+                save_results_to_json(final_results, output_file)
+                self.logger.info(f"Results saved to: {output_file}")
+            
+            self.logger.info(f"Batch analysis completed in {processing_time:.2f}s")
+            return final_results
+            
+        except Exception as e:
+            self.logger.error(f"Error in batch analysis: {str(e)}")
+            self.logger.error(traceback.format_exc())
+            return {'error': str(e)}
+    
+    def get_system_status(self) -> Dict[str, Any]:
+        """
+        Get system status and health information
         
-        # Step 2: Rank resumes against job description
-        ranked_resumes = self.scorer.rank_resumes(processed_resumes, job_description)
-        
-        if not ranked_resumes:
-            logger.error("No resumes ranked. Check job description and resume data.")
-            return []
-        
-        # Step 3: Create and save summary report
-        summary_report = create_summary_report(ranked_resumes, job_description)
-        save_summary_report(summary_report)
-        
-        # Step 4: Print summary
-        print_summary_report(summary_report)
-        
-        logger.info("Resume screening workflow completed successfully")
-        return ranked_resumes
-
+        Returns:
+            Dictionary containing system status
+        """
+        try:
+            status = {
+                'components': {
+                    'parser': self.parser is not None,
+                    'preprocessor': self.preprocessor is not None,
+                    'skills_extractor': self.skills_extractor is not None,
+                    'scorer': self.scorer is not None
+                },
+                'directories': {
+                    'resumes': settings.RESUMES_DIR.exists(),
+                    'jobs': settings.JOBS_DIR.exists(),
+                    'output': settings.OUTPUT_DIR.exists(),
+                    'logs': settings.LOGS_DIR.exists()
+                },
+                'settings': {
+                    'supported_formats': settings.SUPPORTED_FORMATS,
+                    'scoring_weights': settings.SCORING_WEIGHTS,
+                    'max_file_size': settings.MAX_FILE_SIZE
+                }
+            }
+            
+            return status
+            
+        except Exception as e:
+            self.logger.error(f"Error getting system status: {str(e)}")
+            return {'error': str(e)}
 
 def main():
-    """Main function to run the resume screener"""
-    print("🚀 AI Resume Screener - Main Pipeline")
-    print("="*50)
+    """Main function for command-line usage"""
+    import argparse
     
-    # Check dependencies
-    print_dependency_status()
+    parser = argparse.ArgumentParser(description="ApexHire AI Resume Screener")
+    parser.add_argument('--resume', type=str, help='Path to resume file')
+    parser.add_argument('--job', type=str, help='Path to job description file')
+    parser.add_argument('--batch', action='store_true', help='Run batch analysis')
+    parser.add_argument('--resumes-dir', type=str, help='Directory with resume files')
+    parser.add_argument('--jobs-dir', type=str, help='Directory with job files')
+    parser.add_argument('--output', type=str, default='output/results.json', help='Output file')
     
-    # Initialize pipeline
-    pipeline = ResumeScreenerPipeline()
+    args = parser.parse_args()
     
-    # Check if we have resumes to process
-    resume_dir = 'data/resumes'
-    if not os.path.exists(resume_dir) or not os.listdir(resume_dir):
-        print(f"\n📁 No resumes found in {resume_dir}")
-        print("Please add resume files (PDF/DOCX) to the data/resumes/ directory")
-        print("Then run the pipeline again.")
-        return
+    screener = ResumeScreener()
     
-    # Create sample job description
-    sample_job_description = """
-    Senior Software Engineer
-    
-    We are looking for a Senior Software Engineer with the following requirements:
-    
-    Technical Skills:
-    - Python programming (3+ years)
-    - JavaScript/React development
-    - AWS cloud services
-    - Docker containerization
-    - Git version control
-    - SQL databases (MySQL, PostgreSQL)
-    
-    Experience:
-    - 5+ years of software development experience
-    - Experience leading small teams
-    - Experience with agile methodologies
-    
-    Education:
-    - Bachelor's degree in Computer Science or related field
-    
-    Responsibilities:
-    - Develop and maintain web applications
-    - Lead technical projects
-    - Mentor junior developers
-    - Collaborate with cross-functional teams
-    """
-    
-    print(f"\n📄 Using sample job description")
-    print(f"📁 Processing resumes from: {resume_dir}")
-    
-    # Run the screening
-    results = pipeline.screen_resumes(
-        resume_directory=resume_dir,
-        job_description=sample_job_description
-    )
-    
-    if results:
-        print(f"\n✅ Screening completed! Processed {len(results)} resumes.")
-        print("📊 Results saved to output/summary_report.json")
+    if args.batch and args.resumes_dir and args.jobs_dir:
+        print("🔄 Running batch analysis...")
+        results = screener.run_batch_analysis(args.resumes_dir, args.jobs_dir, args.output)
+        print(f"✅ Batch analysis completed. Results saved to: {args.output}")
+        
+    elif args.resume and args.job:
+        print(f"🔍 Analyzing {args.resume} against {args.job}...")
+        result = screener.match_resume_to_job(args.resume, args.job)
+        if result:
+            print(f"✅ Analysis completed. Score: {result['overall_score']:.1%}")
+        else:
+            print("❌ Analysis failed")
+            
     else:
-        print("\n❌ Screening failed. Check the logs for details.")
-
+        print("ℹ️ Use --help for usage information")
 
 if __name__ == "__main__":
     main()

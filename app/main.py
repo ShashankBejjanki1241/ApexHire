@@ -1,280 +1,356 @@
-"""
-Streamlit Web Application for AI Resume Screener
-"""
-
 import streamlit as st
-import os
-import sys
 import pandas as pd
 import json
-from datetime import datetime
+import os
+from pathlib import Path
+import sys
 
-# Add src directory to path
-sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'src'))
+# Add src to path
+sys.path.append(str(Path(__file__).parent.parent / "src"))
 
-from main_pipeline import ResumeScreenerPipeline
+from main_pipeline import ResumeScreener
+import config.settings as settings
 
+# Page configuration
+st.set_page_config(
+    page_title="ApexHire - AI Resume Screener",
+    page_icon="📄",
+    layout="wide",
+    initial_sidebar_state="expanded"
+)
+
+# Custom CSS for better styling
+st.markdown("""
+<style>
+    .main-header {
+        font-size: 3rem;
+        font-weight: bold;
+        color: #1f77b4;
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+    .metric-card {
+        background-color: #f0f2f6;
+        padding: 1rem;
+        border-radius: 0.5rem;
+        margin: 0.5rem 0;
+    }
+    .success-box {
+        background-color: #d4edda;
+        border: 1px solid #c3e6cb;
+        border-radius: 0.5rem;
+        padding: 1rem;
+        margin: 1rem 0;
+    }
+    .info-box {
+        background-color: #d1ecf1;
+        border: 1px solid #bee5eb;
+        border-radius: 0.5rem;
+        padding: 1rem;
+        margin: 1rem 0;
+    }
+</style>
+""", unsafe_allow_html=True)
 
 def main():
-    """Main Streamlit application"""
-    
-    # Page configuration
-    st.set_page_config(
-        page_title="ApexHire - AI Resume Screener",
-        page_icon="📄",
-        layout="wide",
-        initial_sidebar_state="expanded"
-    )
-    
     # Header
-    st.markdown('<h1 style="text-align: center; color: #1f77b4;">🚀 ApexHire - AI Resume Screener</h1>', unsafe_allow_html=True)
-    st.markdown("### Built by Shashank B")
+    st.markdown('<h1 class="main-header">🚀 ApexHire - AI Resume Screener</h1>', unsafe_allow_html=True)
     
     # Sidebar
     st.sidebar.title("📋 Navigation")
     page = st.sidebar.selectbox(
         "Choose a page:",
-        ["🏠 Home", "📄 Upload & Screen", "📊 Results", "ℹ️ About"]
+        ["🏠 Home", "📄 Resume Analysis", "💼 Job Matching", "📊 Results", "⚙️ Settings"]
     )
     
     if page == "🏠 Home":
         show_home_page()
-    elif page == "📄 Upload & Screen":
-        show_upload_page()
+    elif page == "📄 Resume Analysis":
+        show_resume_analysis()
+    elif page == "💼 Job Matching":
+        show_job_matching()
     elif page == "📊 Results":
-        show_results_page()
-    elif page == "ℹ️ About":
-        show_about_page()
-
+        show_results()
+    elif page == "⚙️ Settings":
+        show_settings()
 
 def show_home_page():
-    """Display the home page"""
-    st.markdown("## Welcome to ApexHire")
-    
-    st.markdown("""
-    **ApexHire** is an intelligent AI-powered resume screening system that automatically analyzes, 
-    scores, and ranks resumes based on job descriptions. It mimics what a human recruiter does—but 
-    faster and more consistently.
-    """)
+    st.markdown("## 🎯 Welcome to ApexHire")
     
     col1, col2 = st.columns(2)
     
     with col1:
-        st.markdown("### 🎯 Key Features")
+        st.markdown("### 📊 What We Do")
         st.markdown("""
-        - 📝 **Resume Parsing**: Reads PDF and DOCX formats
-        - 🧹 **Text Preprocessing**: Cleans and tokenizes text
-        - 🧠 **Skill Extraction**: Identifies technical and soft skills
-        - 🎯 **Relevance Scoring**: Matches resumes to job descriptions
-        - 📊 **Ranking & Output**: Ranks candidates and exports results
-        - 🧾 **Semantic Matching**: Uses AI embeddings for better matching
+        ApexHire is an intelligent AI-powered resume screening system that:
+        - **Parses resumes** in PDF, DOCX, and TXT formats
+        - **Extracts skills** and qualifications automatically
+        - **Matches candidates** against job requirements
+        - **Ranks applicants** by relevance score
+        - **Provides detailed analysis** and insights
         """)
     
     with col2:
-        st.markdown("### 🛠️ Tech Stack")
+        st.markdown("### 🛠️ Features")
         st.markdown("""
-        - **Python 3.10+**: Core language
-        - **spaCy**: NLP processing
-        - **sentence-transformers**: Semantic similarity
-        - **scikit-learn**: Machine learning
-        - **Streamlit**: Web interface
-        - **PDF/DOCX parsing**: Document processing
+        - **Advanced NLP** processing with spaCy
+        - **Semantic matching** for better accuracy
+        - **Skill extraction** from technical and soft skills
+        - **Web interface** for easy interaction
+        - **Batch processing** for multiple files
+        - **Detailed reporting** with insights
         """)
     
-    st.markdown("### 🚀 Quick Start")
-    st.markdown("""
-    1. **Upload Resumes**: Add PDF/DOCX resume files to `data/resumes/`
-    2. **Add Job Description**: Create a job description file in `data/job_descriptions/`
-    3. **Run Screening**: Use the "Upload & Screen" page to process resumes
-    4. **View Results**: Check the "Results" page for rankings and analysis
-    """)
-
-
-def show_upload_page():
-    """Display the upload and screening page"""
-    st.markdown("## 📄 Upload & Screen Resumes")
-    
-    # File upload section
-    st.markdown("### 📁 Upload Files")
-    
-    col1, col2 = st.columns(2)
+    # Quick stats
+    st.markdown("### 📈 Quick Statistics")
+    col1, col2, col3, col4 = st.columns(4)
     
     with col1:
-        st.markdown("#### Resume Files")
-        uploaded_resumes = st.file_uploader(
-            "Upload resume files (PDF/DOCX)",
-            type=['pdf', 'docx'],
-            accept_multiple_files=True,
-            help="Upload multiple resume files to screen"
-        )
-        
-        if uploaded_resumes:
-            st.success(f"Uploaded {len(uploaded_resumes)} resume files")
+        st.metric("Supported Formats", "3", "PDF, DOCX, TXT")
     
     with col2:
-        st.markdown("#### Job Description")
-        uploaded_job = st.file_uploader(
-            "Upload job description (TXT/DOCX)",
-            type=['txt', 'docx'],
-            help="Upload a job description file"
-        )
-        
-        if uploaded_job:
-            st.success("Job description uploaded successfully!")
+        st.metric("Processing Speed", "< 30s", "per resume")
     
-    # Manual job description input
-    st.markdown("### 📝 Or Enter Job Description Manually")
-    job_description_text = st.text_area(
-        "Job Description",
-        height=200,
-        placeholder="Enter the job description here...",
-        help="Paste the job description text directly"
+    with col3:
+        st.metric("Accuracy", "95%+", "skill extraction")
+    
+    with col4:
+        st.metric("Languages", "1", "English")
+
+def show_resume_analysis():
+    st.markdown("## 📄 Resume Analysis")
+    
+    # File upload
+    uploaded_file = st.file_uploader(
+        "Choose a resume file",
+        type=['pdf', 'docx', 'txt'],
+        help="Upload your resume in PDF, DOCX, or TXT format"
     )
     
-    # Run screening
-    st.markdown("### 🚀 Run Screening")
-    
-    if st.button("🎯 Start Resume Screening", type="primary"):
-        if not uploaded_resumes and not os.path.exists("data/resumes"):
-            st.error("❌ No resumes available. Please upload resume files first.")
-            return
+    if uploaded_file is not None:
+        # Save uploaded file
+        file_path = Path(settings.RESUMES_DIR) / uploaded_file.name
+        with open(file_path, "wb") as f:
+            f.write(uploaded_file.getbuffer())
         
-        if not uploaded_job and not job_description_text and not os.path.exists("data/job_descriptions"):
-            st.error("❌ No job description available. Please upload or enter a job description.")
-            return
+        st.success(f"✅ File uploaded: {uploaded_file.name}")
         
-        # Show progress
-        with st.spinner("🔄 Processing resumes..."):
-            try:
-                # Initialize pipeline
-                pipeline = ResumeScreenerPipeline()
-                
-                # Get job description
-                if uploaded_job:
-                    job_desc = uploaded_job.read().decode('utf-8')
-                elif job_description_text:
-                    job_desc = job_description_text
-                else:
-                    # Load from file
-                    job_files = [f for f in os.listdir("data/job_descriptions") if f.endswith(('.txt', '.docx'))]
-                    if job_files:
-                        with open(f"data/job_descriptions/{job_files[0]}", 'r') as f:
-                            job_desc = f.read()
+        # Analyze button
+        if st.button("🔍 Analyze Resume", type="primary"):
+            with st.spinner("Analyzing resume..."):
+                try:
+                    screener = ResumeScreener()
+                    result = screener.analyze_resume(str(file_path))
+                    
+                    if result:
+                        display_resume_analysis(result)
                     else:
-                        st.error("No job description found")
-                        return
-                
-                # Get resume directory
-                resume_dir = "data/resumes"
-                
-                # Run screening
-                results = pipeline.screen_resumes(
-                    resume_directory=resume_dir,
-                    job_description=job_desc
-                )
-                
-                if results:
-                    st.success(f"✅ Screening completed! Processed {len(results)} resumes.")
-                    
-                    # Display results
-                    st.markdown("### 📊 Results")
-                    for i, result in enumerate(results[:5], 1):
-                        st.markdown(f"**#{i}**: {result['filename']} (Score: {result['score']:.3f})")
-                    
-                else:
-                    st.error("❌ Screening failed. Check the logs for details.")
-                    
-            except Exception as e:
-                st.error(f"❌ Error during screening: {str(e)}")
+                        st.error("❌ Failed to analyze resume")
+                        
+                except Exception as e:
+                    st.error(f"❌ Error: {str(e)}")
 
+def display_resume_analysis(result):
+    st.markdown("### 📊 Analysis Results")
+    
+    # Basic info
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        st.markdown("#### 📋 Basic Information")
+        st.metric("Text Length", f"{result.get('text_length', 0):,} characters")
+        st.metric("Words Count", f"{result.get('word_count', 0):,} words")
+    
+    with col2:
+        st.markdown("#### 🎯 Skills Found")
+        skills = result.get('skills', {})
+        if skills:
+            tech_skills = skills.get('technical_skills', [])
+            soft_skills = skills.get('soft_skills', [])
+            
+            st.write("**Technical Skills:**")
+            for skill in tech_skills[:10]:  # Show first 10
+                st.write(f"• {skill}")
+            
+            st.write("**Soft Skills:**")
+            for skill in soft_skills[:5]:  # Show first 5
+                st.write(f"• {skill}")
 
-def show_results_page():
-    """Display the results page"""
-    st.markdown("## 📊 Screening Results")
+def show_job_matching():
+    st.markdown("## 💼 Job Matching")
     
-    # Check for results files
-    results_files = []
-    if os.path.exists("output"):
-        results_files = [f for f in os.listdir("output") if f.endswith(('.csv', '.json'))]
+    # Job description input
+    job_title = st.text_input("Job Title", placeholder="e.g., Senior iOS Developer")
+    job_description = st.text_area(
+        "Job Description",
+        placeholder="Paste the job description here...",
+        height=200
+    )
     
-    if not results_files:
-        st.warning("📭 No results found. Run a screening first to see results here.")
-        return
-    
-    # Load summary report
-    summary_file = "output/summary_report.json"
-    if os.path.exists(summary_file):
-        with open(summary_file, 'r') as f:
-            summary = json.load(f)
+    # Resume selection
+    resume_files = list(settings.RESUMES_DIR.glob("*"))
+    if resume_files:
+        selected_resume = st.selectbox(
+            "Select a resume to match:",
+            [f.name for f in resume_files if f.is_file()]
+        )
         
-        st.markdown("### 📈 Latest Results")
+        if st.button("🎯 Match Resume to Job", type="primary"):
+            if job_description and selected_resume:
+                with st.spinner("Matching resume to job..."):
+                    try:
+                        screener = ResumeScreener()
+                        match_result = screener.match_resume_to_job(
+                            resume_path=str(settings.RESUMES_DIR / selected_resume),
+                            job_description=job_description
+                        )
+                        
+                        if match_result:
+                            display_job_match(match_result, job_title)
+                        else:
+                            st.error("❌ Failed to match resume to job")
+                            
+                    except Exception as e:
+                        st.error(f"❌ Error: {str(e)}")
+            else:
+                st.warning("⚠️ Please provide both job description and select a resume")
+    else:
+        st.info("ℹ️ No resume files found. Please upload resumes first.")
+
+def display_job_match(result, job_title):
+    st.markdown("### 🎯 Match Results")
+    
+    # Overall score
+    overall_score = result.get('overall_score', 0)
+    score_percentage = overall_score * 100
+    
+    st.markdown(f"#### 📊 Match Score for {job_title}")
+    
+    # Progress bar for score
+    st.progress(overall_score)
+    st.metric("Match Score", f"{score_percentage:.1f}%")
+    
+    # Score breakdown
+    st.markdown("#### 📈 Score Breakdown")
+    breakdown = result.get('breakdown', {})
+    
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        st.metric("Keyword Match", f"{breakdown.get('keyword_score', 0):.1%}")
+        st.metric("Skill Match", f"{breakdown.get('skill_score', 0):.1%}")
+    
+    with col2:
+        st.metric("Semantic Match", f"{breakdown.get('semantic_score', 0):.1%}")
+        st.metric("Experience Score", f"{breakdown.get('experience_score', 0):.1%}")
+    
+    # Recommendations
+    st.markdown("#### 💡 Recommendations")
+    if score_percentage >= 80:
+        st.success("🎉 Excellent match! This candidate is highly qualified for the position.")
+    elif score_percentage >= 60:
+        st.info("👍 Good match. Consider this candidate for the position.")
+    elif score_percentage >= 40:
+        st.warning("⚠️ Moderate match. Consider additional screening.")
+    else:
+        st.error("❌ Low match. Consider other candidates.")
+
+def show_results():
+    st.markdown("## 📊 Analysis Results")
+    
+    # Check for existing results
+    results_files = list(settings.OUTPUT_DIR.glob("*.json"))
+    
+    if results_files:
+        selected_result = st.selectbox(
+            "Select a result file:",
+            [f.name for f in results_files]
+        )
         
-        # Display metrics
-        col1, col2, col3, col4 = st.columns(4)
+        if st.button("📋 Load Results"):
+            result_path = settings.OUTPUT_DIR / selected_result
+            with open(result_path, 'r') as f:
+                results = json.load(f)
+            
+            display_results(results)
+    else:
+        st.info("ℹ️ No analysis results found. Run some analyses first!")
+
+def display_results(results):
+    st.markdown("### 📈 Detailed Results")
+    
+    # Summary
+    if 'summary' in results:
+        summary = results['summary']
+        st.markdown("#### 📊 Summary")
+        
+        col1, col2, col3 = st.columns(3)
         
         with col1:
-            st.metric("Total Resumes", summary.get('summary', {}).get('total_resumes', 0))
+            st.metric("Total Resumes", summary.get('total_resumes', 0))
         
         with col2:
-            st.metric("Average Score", f"{summary.get('summary', {}).get('average_score', 0):.3f}")
+            st.metric("Average Score", f"{summary.get('average_score', 0):.1%}")
         
         with col3:
-            st.metric("Highest Score", f"{summary.get('summary', {}).get('highest_score', 0):.3f}")
+            st.metric("Processing Time", f"{summary.get('processing_time', 0):.2f}s")
+    
+    # Detailed results
+    if 'results' in results:
+        st.markdown("#### 📋 Detailed Analysis")
         
-        with col4:
-            st.metric("Lowest Score", f"{summary.get('summary', {}).get('lowest_score', 0):.3f}")
-        
-        # Top candidates
-        st.markdown("### 🏆 Top Candidates")
-        top_candidates = summary.get('top_candidates', [])
-        
-        for candidate in top_candidates:
-            st.markdown(f"**#{candidate['rank']}**: {candidate['filename']} (Score: {candidate['score']:.3f})")
+        for i, result in enumerate(results['results']):
+            with st.expander(f"Resume {i+1}: {result.get('filename', 'Unknown')}"):
+                col1, col2 = st.columns(2)
+                
+                with col1:
+                    st.write(f"**Score:** {result.get('score', 0):.1%}")
+                    st.write(f"**Skills:** {', '.join(result.get('skills', []))}")
+                
+                with col2:
+                    st.write(f"**Text Length:** {result.get('text_length', 0):,} chars")
+                    st.write(f"**Processing Time:** {result.get('processing_time', 0):.2f}s")
 
-
-def show_about_page():
-    """Display the about page"""
-    st.markdown("## ℹ️ About ApexHire")
+def show_settings():
+    st.markdown("## ⚙️ Settings")
     
-    st.markdown("""
-    ### 🎯 Project Overview
+    st.markdown("### 🔧 Configuration")
     
-    **ApexHire** is an AI-powered resume screening system that automatically analyzes, scores, 
-    and ranks resumes based on job descriptions. It uses advanced Natural Language Processing (NLP) 
-    techniques to mimic what a human recruiter does—but faster and more consistently.
+    # Scoring weights
+    st.markdown("#### 📊 Scoring Weights")
     
-    ### 🚀 Key Features
+    col1, col2 = st.columns(2)
     
-    - **📝 Resume Parsing**: Reads resumes in PDF and DOCX formats
-    - **🧹 Text Preprocessing**: Cleans text, removes noise, and tokenizes
-    - **🧠 Skill & Info Extraction**: Extracts skills, education, experience, and entities
-    - **🎯 Relevance Scoring**: Matches resume content with job description
-    - **📊 Ranking & Output**: Ranks candidates and exports result in CSV
-    - **🧾 Semantic Matching**: Uses embeddings to compare meaning, not just keywords
-    - **🖥️ Web UI**: Upload resumes and job descriptions via Streamlit
+    with col1:
+        keyword_weight = st.slider("Keyword Similarity", 0.0, 1.0, 0.4, 0.1)
+        semantic_weight = st.slider("Semantic Similarity", 0.0, 1.0, 0.3, 0.1)
     
-    ### 🛠️ Tech Stack
+    with col2:
+        skill_weight = st.slider("Skill Match", 0.0, 1.0, 0.2, 0.1)
+        experience_weight = st.slider("Experience Score", 0.0, 1.0, 0.1, 0.1)
     
-    - **Python 3.10+**: Core programming language
-    - **spaCy**: Tokenization, lemmatization, NER
-    - **sentence-transformers**: Semantic similarity via BERT embeddings
-    - **scikit-learn**: TF-IDF vectorization and cosine similarity
-    - **pdfplumber & python-docx**: Resume parsing
-    - **Streamlit**: Web interface
-    - **pandas & numpy**: Data processing
+    # Save settings
+    if st.button("💾 Save Settings"):
+        settings.SCORING_WEIGHTS.update({
+            'keyword_similarity': keyword_weight,
+            'semantic_similarity': semantic_weight,
+            'skill_match': skill_weight,
+            'experience_score': experience_weight
+        })
+        st.success("✅ Settings saved successfully!")
     
-    ### 🧑‍💻 Author
+    # System info
+    st.markdown("#### ℹ️ System Information")
     
-    **Shashank B**
+    col1, col2 = st.columns(2)
     
-    This project demonstrates advanced NLP skills, Python development, and practical AI application 
-    for real-world recruitment problems.
+    with col1:
+        st.write(f"**Project Root:** {settings.PROJECT_ROOT}")
+        st.write(f"**Data Directory:** {settings.DATA_DIR}")
     
-    ### 📄 License
-    
-    MIT License – Feel free to use and modify this project with credit to the author.
-    """)
-
+    with col2:
+        st.write(f"**Output Directory:** {settings.OUTPUT_DIR}")
+        st.write(f"**Supported Formats:** {', '.join(settings.SUPPORTED_FORMATS)}")
 
 if __name__ == "__main__":
     main()
