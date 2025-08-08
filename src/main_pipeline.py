@@ -21,6 +21,9 @@ from skills_extractor import AdvancedSkillsExtractor
 from scorer import ResumeScorer
 from resume_analyzer import ResumeAnalyzer
 from utils import setup_logging, save_results_to_json, load_job_descriptions
+import sys
+import os
+sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 import config.settings as settings
 
 class ResumeScreener:

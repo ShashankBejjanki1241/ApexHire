@@ -100,21 +100,41 @@ ApexHire/
 │   ├── preprocess.py           # Text preprocessing
 │   ├── scorer.py               # Scoring algorithms
 │   ├── skills_extractor.py     # Skill extraction
-│   ├── utils.py                # Utility functions
-│   └── config/settings.py      # Configuration
+│   ├── resume_analyzer.py      # Resume analysis
+│   ├── performance_monitor.py  # Performance tracking
+│   └── utils.py                # Utility functions
+├── 📁 api/                     # FastAPI REST API
+│   └── main.py                 # API endpoints
 ├── 📁 app/                     # Web interface
 │   ├── main.py                 # Streamlit app
-│   └── components/analytics.py # Analytics dashboard
+│   └── components/             # UI components
+├── 📁 config/                  # Configuration
+│   └── settings.py             # Centralized settings
+├── 📁 docker/                  # Docker configuration
+│   ├── Dockerfile              # Container definition
+│   └── docker-compose.yml      # Multi-service setup
 ├── 📁 docs/                    # Documentation
-│   ├── USER_GUIDE.md          # Complete user guide
-│   └── API.md                 # API documentation
-├── 📁 scripts/                 # Deployment scripts
+│   ├── api/                    # API documentation
+│   ├── deployment/             # Deployment guides
+│   ├── development/            # Development guides
+│   ├── USER_GUIDE.md          # User guide
+│   └── API.md                 # API reference
 ├── 📁 tests/                   # Test suite
+│   ├── test_parser.py          # Parser tests
+│   ├── test_performance.py     # Performance tests
+│   └── test_api.py            # API tests
+├── 📁 data/                    # Sample data
+│   ├── resumes/               # Resume files
+│   └── job_descriptions/      # Job descriptions
+├── 📁 output/                  # Analysis results
+├── 📁 logs/                    # Application logs
+├── 📄 cli.py                   # Command-line interface
 ├── 📄 requirements.txt         # Dependencies
 ├── 📄 setup.py                 # Installation script
-├── 📄 cli.py                   # Command-line interface
 └── 📄 README.md                # This file
 ```
+
+📋 **See [PROJECT_STRUCTURE.md](PROJECT_STRUCTURE.md) for detailed organization**
 
 ## 📊 Example Results
 

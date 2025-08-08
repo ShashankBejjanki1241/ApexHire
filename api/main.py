@@ -17,10 +17,11 @@ import sys
 
 # Add src to path
 sys.path.append(str(Path(__file__).parent.parent / "src"))
+sys.path.append(str(Path(__file__).parent.parent / "config"))
 
 from main_pipeline import ResumeScreener
 from performance_monitor import PerformanceMonitor, check_system_resources
-import config.settings as settings
+import settings
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
