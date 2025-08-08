@@ -1,9 +1,10 @@
 version: '3.8'
 
 services:
-  apexhire:
+  # Web Interface (Streamlit)
+  apexhire-web:
     build: .
-    container_name: apexhire-app
+    container_name: apexhire-web
     ports:
       - "8501:8501"
     volumes:
@@ -17,6 +18,29 @@ services:
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8501/_stcore/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # API Service (FastAPI)
+  apexhire-api:
+    build: .
+    container_name: apexhire-api
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./data:/app/data
+      - ./output:/app/output
+      - ./logs:/app/logs
+    environment:
+      - PYTHONPATH=/app
+      - API_HOST=0.0.0.0
+      - API_PORT=8000
+    restart: unless-stopped
+    command: ["python", "api/main.py"]
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 30s
       timeout: 10s
       retries: 3
