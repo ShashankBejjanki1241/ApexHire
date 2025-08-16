@@ -8,6 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 from typing import List, Optional, Dict, Any
+from contextlib import asynccontextmanager
 import uvicorn
 import logging
 import json
@@ -27,13 +28,38 @@ import settings
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Lifespan context manager for startup and shutdown events"""
+    # Startup
+    logger.info("Starting ApexHire API...")
+    
+    # Validate configuration
+    if not settings.validate_config():
+        logger.error("Configuration validation failed")
+        raise Exception("Invalid configuration")
+    
+    # Check system resources
+    health = check_system_resources()
+    if health['status'] == 'error':
+        logger.error(f"System health check failed: {health.get('error')}")
+    
+    logger.info("ApexHire API started successfully")
+    
+    yield
+    
+    # Shutdown
+    logger.info("Shutting down ApexHire API...")
+    performance_monitor.save_metrics("api_shutdown_metrics.json")
+
 # Initialize FastAPI app
 app = FastAPI(
     title="ApexHire API",
     description="AI-powered resume screening and job matching API",
     version="1.0.0",
     docs_url="/docs",
-    redoc_url="/redoc"
+    redoc_url="/redoc",
+    lifespan=lifespan
 )
 
 # Add CORS middleware
@@ -82,29 +108,6 @@ class PerformanceMetricsResponse(BaseModel):
     summary: Dict[str, Any]
     recent_metrics: List[Dict[str, Any]]
     system_health: Dict[str, Any]
-
-@app.on_event("startup")
-async def startup_event():
-    """Initialize application on startup"""
-    logger.info("Starting ApexHire API...")
-    
-    # Validate configuration
-    if not settings.validate_config():
-        logger.error("Configuration validation failed")
-        raise Exception("Invalid configuration")
-    
-    # Check system resources
-    health = check_system_resources()
-    if health['status'] == 'error':
-        logger.error(f"System health check failed: {health.get('error')}")
-    
-    logger.info("ApexHire API started successfully")
-
-@app.on_event("shutdown")
-async def shutdown_event():
-    """Cleanup on shutdown"""
-    logger.info("Shutting down ApexHire API...")
-    performance_monitor.save_metrics("api_shutdown_metrics.json")
 
 @app.get("/", tags=["Root"])
 async def root():
