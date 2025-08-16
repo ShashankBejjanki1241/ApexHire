@@ -260,10 +260,22 @@ class TestBatchAnalysis:
         
         try:
             files = []
+            
+            # Read file content first, then create BytesIO objects (like the working test)
             with open(valid_file, 'rb') as f:
-                files.append(("files", ("valid.txt", f, "text/plain")))
+                valid_content = f.read()
             with open(invalid_file, 'rb') as f:
-                files.append(("files", ("invalid.invalid", f, "application/octet-stream")))
+                invalid_content = f.read()
+            
+            # Create file-like objects for testing
+            from io import BytesIO
+            valid_file_obj = BytesIO(valid_content)
+            valid_file_obj.name = "valid.txt"
+            invalid_file_obj = BytesIO(invalid_content)
+            invalid_file_obj.name = "invalid.invalid"
+            
+            files.append(("files", ("valid.txt", valid_file_obj, "text/plain")))
+            files.append(("files", ("invalid.invalid", invalid_file_obj, "application/octet-stream")))
             
             response = client.post(
                 "/analyze/batch",
