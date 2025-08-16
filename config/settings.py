@@ -133,7 +133,7 @@ def get_config() -> Dict[str, Any]:
     }
 
 def validate_config() -> bool:
-    """Validate configuration settings"""
+    """Validate configuration settings with comprehensive checks"""
     try:
         # Check if required directories can be created
         ensure_directories()
@@ -145,7 +145,28 @@ def validate_config() -> bool:
                  SCORING_CONFIG['other_weight']
         
         if abs(weights - 1.0) > 0.01:
-            raise ValueError("Scoring weights must sum to 1.0")
+            raise ValueError(f"Scoring weights must sum to 1.0, got {weights:.3f}")
+        
+        # Validate individual scoring weights are between 0 and 1
+        weight_fields = ['experience_weight', 'skills_weight', 'education_weight', 'other_weight']
+        for key in weight_fields:
+            weight = SCORING_CONFIG[key]
+            if not isinstance(weight, (int, float)) or weight < 0 or weight > 1:
+                raise ValueError(f"Scoring weight '{key}' must be between 0 and 1, got {weight}")
+        
+        # Validate other scoring configuration values
+        if SCORING_CONFIG['min_experience_years'] < 0:
+            raise ValueError("min_experience_years must be non-negative")
+        
+        if SCORING_CONFIG['max_experience_years'] <= 0:
+            raise ValueError("max_experience_years must be positive")
+        
+        if SCORING_CONFIG['min_experience_years'] >= SCORING_CONFIG['max_experience_years']:
+            raise ValueError("min_experience_years must be less than max_experience_years")
+        
+        if not isinstance(SCORING_CONFIG['skill_match_threshold'], (int, float)) or \
+           SCORING_CONFIG['skill_match_threshold'] < 0 or SCORING_CONFIG['skill_match_threshold'] > 1:
+            raise ValueError("skill_match_threshold must be between 0 and 1")
         
         # Validate performance settings
         if PERFORMANCE_CONFIG['max_processing_time'] <= 0:
@@ -154,10 +175,59 @@ def validate_config() -> bool:
         if PERFORMANCE_CONFIG['memory_limit_mb'] <= 0:
             raise ValueError("Memory limit must be positive")
         
+        if PERFORMANCE_CONFIG['batch_size'] <= 0:
+            raise ValueError("Batch size must be positive")
+        
+        if PERFORMANCE_CONFIG['cache_ttl'] <= 0:
+            raise ValueError("Cache TTL must be positive")
+        
+        # Validate NLP configuration
+        if not isinstance(NLP_CONFIG['min_skill_confidence'], (int, float)) or \
+           NLP_CONFIG['min_skill_confidence'] < 0 or NLP_CONFIG['min_skill_confidence'] > 1:
+            raise ValueError("min_skill_confidence must be between 0 and 1")
+        
+        if NLP_CONFIG['max_text_length'] <= 0:
+            raise ValueError("max_text_length must be positive")
+        
+        if NLP_CONFIG['min_text_length'] <= 0:
+            raise ValueError("min_text_length must be positive")
+        
+        if NLP_CONFIG['min_text_length'] >= NLP_CONFIG['max_text_length']:
+            raise ValueError("min_text_length must be less than max_text_length")
+        
+        # Validate file format configurations
+        if not SUPPORTED_FORMATS:
+            raise ValueError("SUPPORTED_FORMATS cannot be empty")
+        
+        # Validate logging configuration
+        if LOGGING_CONFIG['max_file_size'] <= 0:
+            raise ValueError("Log max file size must be positive")
+        
+        if LOGGING_CONFIG['backup_count'] < 0:
+            raise ValueError("Log backup count must be non-negative")
+        
+        # Validate API configuration
+        if API_CONFIG['port'] <= 0 or API_CONFIG['port'] > 65535:
+            raise ValueError("API port must be between 1 and 65535")
+        
+        if API_CONFIG['workers'] <= 0:
+            raise ValueError("API workers must be positive")
+        
+        # Validate security configuration
+        if SECURITY_CONFIG['access_token_expire_minutes'] <= 0:
+            raise ValueError("Access token expire minutes must be positive")
+        
+        if SECURITY_CONFIG['max_login_attempts'] <= 0:
+            raise ValueError("Max login attempts must be positive")
+        
+        if SECURITY_CONFIG['lockout_duration_minutes'] <= 0:
+            raise ValueError("Lockout duration must be positive")
+        
+        print("✅ Configuration validation passed successfully")
         return True
         
     except Exception as e:
-        print(f"Configuration validation failed: {e}")
+        print(f"❌ Configuration validation failed: {e}")
         return False
 
 # Initialize directories on import
