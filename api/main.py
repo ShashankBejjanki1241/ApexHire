@@ -63,7 +63,7 @@ class ResumeAnalysisRequest(BaseModel):
 class ResumeAnalysisResponse(BaseModel):
     overall_score: float
     breakdown: Dict[str, Any]
-    skills_found: Dict[str, List[str]]
+    skills_found: Dict[str, Any]  # Changed to match pipeline output structure
     recommendations: List[str]
     processing_time: float
     status: str
