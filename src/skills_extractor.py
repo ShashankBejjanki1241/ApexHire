@@ -31,14 +31,8 @@ class AdvancedSkillsExtractor:
     
     def __init__(self):
         """Initialize the advanced skills extractor"""
-        # Load spaCy model
-        try:
-            self.nlp = spacy.load("en_core_web_sm")
-        except OSError:
-            logger.warning("spaCy model not found. Installing...")
-            import subprocess
-            subprocess.run(["python", "-m", "spacy", "download", "en_core_web_sm"])
-            self.nlp = spacy.load("en_core_web_sm")
+        # Load spaCy model with better error handling
+        self.nlp = self._load_spacy_model()
         
         # Initialize skill ontology
         self.skill_ontology = self._build_skill_ontology()
@@ -47,6 +41,87 @@ class AdvancedSkillsExtractor:
         self._setup_matchers()
         
         logger.info("Advanced Skills Extractor initialized")
+    
+    def _load_spacy_model(self):
+        """Load spaCy model with comprehensive error handling"""
+        model_name = "en_core_web_sm"
+        
+        try:
+            # Try to load the model
+            return spacy.load(model_name)
+        except OSError:
+            logger.warning(f"spaCy model '{model_name}' not found.")
+            
+            # Try automatic installation
+            if self._try_install_spacy_model(model_name):
+                try:
+                    return spacy.load(model_name)
+                except OSError as e:
+                    logger.error(f"Failed to load model after installation: {e}")
+            
+            # Fallback: try to use a basic English model or create a minimal one
+            logger.warning("Attempting to use fallback spaCy model...")
+            return self._create_fallback_model()
+    
+    def _try_install_spacy_model(self, model_name):
+        """Try to install spaCy model with better error handling"""
+        try:
+            import subprocess
+            import sys
+            
+            logger.info(f"Attempting to install spaCy model: {model_name}")
+            
+            # Use the same Python executable that's currently running
+            python_executable = sys.executable
+            
+            result = subprocess.run(
+                [python_executable, "-m", "spacy", "download", model_name],
+                capture_output=True,
+                text=True,
+                timeout=300  # 5 minute timeout
+            )
+            
+            if result.returncode == 0:
+                logger.info(f"Successfully installed spaCy model: {model_name}")
+                return True
+            else:
+                logger.error(f"Failed to install spaCy model: {result.stderr}")
+                return False
+                
+        except subprocess.TimeoutExpired:
+            logger.error("spaCy model installation timed out")
+            return False
+        except Exception as e:
+            logger.error(f"Error during spaCy model installation: {e}")
+            return False
+    
+    def _create_fallback_model(self):
+        """Create a minimal fallback spaCy model for basic functionality"""
+        try:
+            # Try to create a minimal English model
+            from spacy.lang.en import English
+            
+            logger.info("Creating minimal fallback English model")
+            nlp = English()
+            
+            # Add basic pipeline components
+            if "tagger" not in nlp.pipe_names:
+                nlp.add_pipe("tagger")
+            if "parser" not in nlp.pipe_names:
+                nlp.add_pipe("parser")
+            if "ner" not in nlp.pipe_names:
+                nlp.add_pipe("ner")
+            
+            logger.warning("Using minimal fallback model - some features may be limited")
+            return nlp
+            
+        except Exception as e:
+            logger.error(f"Failed to create fallback model: {e}")
+            raise RuntimeError(
+                f"Could not load or create spaCy model. Please install manually:\n"
+                f"python -m spacy download {model_name}\n"
+                f"Or run: pip install spacy[en]"
+            )
     
     def _build_skill_ontology(self) -> Dict[str, Dict[str, Any]]:
         """Build comprehensive skill ontology with synonyms and variations"""
