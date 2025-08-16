@@ -24,8 +24,8 @@ from main_pipeline import ResumeScreener
 from performance_monitor import PerformanceMonitor, check_system_resources
 import settings
 
-# Configure logging
-logging.basicConfig(level=logging.INFO)
+# Import centralized logging
+from utils import setup_logging
 logger = logging.getLogger(__name__)
 
 @asynccontextmanager

@@ -6,8 +6,8 @@ Extracts text from PDF and DOCX resume files
 import os
 import logging
 
-# Set up logging
-logging.basicConfig(level=logging.INFO)
+# Import centralized logging
+from utils import setup_logging
 logger = logging.getLogger(__name__)
 
 

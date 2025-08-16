@@ -9,8 +9,8 @@ import re
 from datetime import datetime
 import fuzzywuzzy.fuzz as fuzz
 
-# Set up logging
-logging.basicConfig(level=logging.INFO)
+# Import centralized logging
+from utils import setup_logging
 logger = logging.getLogger(__name__)
 
 

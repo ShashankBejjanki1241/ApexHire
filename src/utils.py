@@ -9,25 +9,59 @@ import logging
 from datetime import datetime
 from typing import Dict, Any
 
-# Set up logging
-logging.basicConfig(level=logging.INFO)
+# Centralized logging setup
 logger = logging.getLogger(__name__)
 
 
-def setup_logging(log_file: str = 'logs/resume_screener.log'):
-    """Setup logging configuration"""
+def setup_logging(log_file: str = 'logs/resume_screener.log', force: bool = False):
+    """Setup centralized logging configuration
+    
+    Args:
+        log_file: Path to log file
+        force: Force reconfiguration even if already configured
+    """
+    # Check if logging is already configured
+    if not force and logging.getLogger().handlers:
+        logger = logging.getLogger(__name__)
+        logger.debug("Logging already configured, returning existing logger")
+        return logger
+    
+    # Create logs directory if it doesn't exist
     os.makedirs(os.path.dirname(log_file), exist_ok=True)
     
+    # Configure root logger
     logging.basicConfig(
         level=logging.INFO,
         format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
         handlers=[
-            logging.FileHandler(log_file),
+            logging.FileHandler(log_file, encoding='utf-8'),
             logging.StreamHandler()
-        ]
+        ],
+        force=force  # Force reconfiguration if needed
     )
     
-    return logging.getLogger(__name__)
+    # Configure specific loggers
+    loggers_to_configure = [
+        'src.parser',
+        'src.preprocess', 
+        'src.scorer',
+        'src.skills_extractor',
+        'src.resume_analyzer',
+        'src.main_pipeline',
+        'api.main',
+        'utils'
+    ]
+    
+    for logger_name in loggers_to_configure:
+        logger = logging.getLogger(logger_name)
+        logger.setLevel(logging.INFO)
+        # Allow propagation to root logger for proper handling
+        logger.propagate = True
+    
+    logger = logging.getLogger(__name__)
+    logger.info(f"Centralized logging configured. Log file: {log_file}")
+    
+    return logger
 
 
 def create_directory_structure():

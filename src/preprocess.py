@@ -6,8 +6,8 @@ Cleans and tokenizes resume text for NLP processing
 import re
 import logging
 
-# Set up logging
-logging.basicConfig(level=logging.INFO)
+# Import centralized logging
+from utils import setup_logging
 logger = logging.getLogger(__name__)
 
 

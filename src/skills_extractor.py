@@ -12,8 +12,8 @@ import spacy
 from spacy.matcher import PhraseMatcher, Matcher
 from spacy.tokens import Doc, Span
 
-# Set up logging
-logging.basicConfig(level=logging.INFO)
+# Import centralized logging
+from utils import setup_logging
 logger = logging.getLogger(__name__)
 
 @dataclass
